@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>《魔道祖师》核心角色性格匹配测评问卷</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#8B4513',
+                        secondary: '#D2B48C',
+                        accent: '#CD5C5C',
+                        light: '#F5F5DC',
+                        dark: '#2F1B14'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        serif: ['Noto Serif SC', 'serif']
+                    },
+                    backgroundImage: {
+                        'paper-texture': "url('https://img.freepik.com/free-photo/old-paper-texture_1194-6111.jpg')"
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .ancient-shadow {
+                text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            }
+            .paper-bg {
+                background-color: #F5F5DC;
+                background-image: 
+                    linear-gradient(rgba(255, 255, 255, 0.3) 2px, transparent 2px),
+                    linear-gradient(90deg, rgba(255, 255, 255, 0.3) 2px, transparent 2px),
+                    linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+                background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+            }
+            .ink-splash {
+                position: relative;
+                overflow: hidden;
+            }
+            .ink-splash::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 0;
+                height: 0;
+                border-radius: 50%;
+                background-color: rgba(205, 92, 92, 0.3);
+                transform: translate(-50%, -50%);
+                transition: width 0.6s, height 0.6s;
+            }
+            .ink-splash:active::after {
+                width: 300px;
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-light min-h-screen font-serif paper-bg">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- 标题区域 -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-primary ancient-shadow mb-4">《魔道祖师》核心角色性格匹配测评</h1>
+            <p class="text-lg text-dark/80 italic">趣味情景量化版</p>
+            <div class="w-32 h-1 bg-accent mx-auto mt-6"></div>
+        </header>
+
+        <!-- 说明区域 -->
+        <div class="bg-white/80 rounded-lg p-6 mb-8 shadow-lg border border-secondary">
+            <h2 class="text-xl font-bold text-primary mb-4 flex items-center">
+                <i class="fa fa-info-circle mr-2"></i>测评说明
+            </h2>
+            <p class="text-dark/90 mb-4">请根据自身真实想法，选择最贴合你的选项（每题仅选1个），每题对应10位角色不同分值，完成所有题目后计算总分，得分最高者即为你的专属匹配角色。</p>
+            <div class="flex justify-center">
+                <button id="startBtn" class="bg-primary hover:bg-primary/90 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 ink-splash">
+                    开始测评
+                </button>
+            </div>
+        </div>
+
+        <!-- 问卷区域 -->
+        <div id="quizContainer" class="hidden">
+            <!-- 题目将通过JS动态生成 -->
+        </div>
+
+        <!-- 结果区域 -->
+        <div id="resultContainer" class="hidden bg-white/80 rounded-lg p-8 shadow-lg border border-secondary">
+            <h2 class="text-2xl font-bold text-primary mb-6 text-center">你的专属匹配角色</h2>
+            <div id="resultContent" class="text-center">
+                <!-- 结果将通过JS动态生成 -->
+            </div>
+            <div class="mt-8 text-center">
+                <button id="restartBtn" class="bg-primary hover:bg-primary/90 text-white font-bold py-3 px-8 rounded-full transition-all duration-300 transform hover:scale-105 ink-splash">
+                    重新测评
+                </button>
+            </div>
+        </div>
+
+        <!-- 角色介绍区域 -->
+        <div id="characterInfo" class="hidden mt-8 bg-white/80 rounded-lg p-6 shadow-lg border border-secondary">
+            <h2 class="text-xl font-bold text-primary mb-4 flex items-center">
+                <i class="fa fa-user-circle mr-2"></i>角色详情
+            </h2>
+            <div id="characterDetails" class="prose max-w-none">
+                <!-- 角色详情将通过JS动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="text-center py-6 text-dark/60 mt-12">
+        <p>《魔道祖师》角色性格匹配测评 - 仅供娱乐</p>
+    </footer>
+
+    <script>
+        // 角色数据（已移除image字段）
+        const characters = {
+            '魏无羡': {
+                name: '魏无羡',
+                title: '夷陵老祖',
+                color: '#CD5C5C',
+                description: '洒脱不羁，重情重义，天生一副笑相，行事不拘一格。虽修非常道，但行正义事，是鬼道创始人，号夷陵老祖。',
+                traits: ['洒脱', '重情义', '机智', '创新', '乐观']
+            },
+            '蓝忘机': {
+                name: '蓝忘机',
+                title: '含光君',
+                color: '#4682B4',
+                description: '姑苏蓝氏二公子，雅正端方，严于律己，逢乱必出。外表清冷严肃，内心重情重义，与魏无羡是至交好友。',
+                traits: ['雅正', '稳重', '深情', '正直', '可靠']
+            },
+            '江澄': {
+                name: '江澄',
+                title: '江晚吟',
+                color: '#8B4513',
+                description: '云梦江氏家主，性格直爽严厉，嘴硬心软。虽表面对魏无羡不满，实则内心重视这段感情，是个重情义的人。',
+                traits: ['直率', '严厉', '重情义', '要强', '负责任']
+            },
+            '金光瑶': {
+                name: '金光瑶',
+                title: '敛芳尊',
+                color: '#DAA520',
+                description: '兰陵金氏家主，八面玲珑，善于权谋。虽出身卑微，但凭借自己的能力一步步爬上高位，心思缜密，手段狠辣。',
+                traits: ['聪明', '权谋', '隐忍', '圆滑', '野心']
+            },
+            '蓝曦臣': {
+                name: '蓝曦臣',
+                title: '泽芜君',
+                color: '#6495ED',
+                description: '姑苏蓝氏家主，温文尔雅，待人温和。与金光瑶、聂明玦并称三尊，是个重情义、明事理的人。',
+                traits: ['温和', '睿智', '重情义', '宽容', '善良']
+            },
+            '江厌离': {
+                name: '江厌离',
+                title: '师姐',
+                color: '#FFB6C1',
+                description: '云梦江氏大小姐，温柔体贴，善解人意。虽不擅长武功，但厨艺精湛，是魏无羡和江澄最敬爱的师姐。',
+                traits: ['温柔', '体贴', '善良', '包容', '贤惠']
+            },
+            '晓星尘': {
+                name: '晓星尘',
+                title: '明月清风',
+                color: '#98D8C8',
+                description: '抱山散人弟子，性格温和，心怀大义。与宋岚并称"明月清风晓星尘，傲雪凌霜宋子琛"，是个正道标杆。',
+                traits: ['正义', '温和', '善良', '无私', '坚定']
+            },
+            '聂怀桑': {
+                name: '聂怀桑',
+                title: '清河聂氏家主',
+                color: '#708090',
+                description: '清河聂氏家主，看似胸无大志，实则心思缜密。为了给兄长报仇，布局多年，是个隐藏的聪明人。',
+                traits: ['聪明', '隐忍', '谨慎', '圆滑', '有谋']
+            },
+            '金子轩': {
+                name: '金子轩',
+                title: '金孔雀',
+                color: '#FFD700',
+                description: '兰陵金氏公子，性格傲娇，出身尊贵。虽一开始对江厌离不满，但后来被她的温柔打动，两人结为夫妻。',
+                traits: ['傲娇', '正直', '重情义', '负责任', '善良']
+            },
+            '温宁': {
+                name: '温宁',
+                title: '鬼将军',
+                color: '#20B2AA',
+                description: '温家旁支，性格胆小怯懦，但重情义。死后被魏无羡炼化为鬼将军，成为他最忠诚的伙伴。',
+                traits: ['善良', '忠诚', '重情义', '勇敢', '朴实']
+            }
+        };
+
+        // 题目数据
+        const questions = [
+            {
+                id: 1,
+                text: '夜猎时捡到一枚不知名的古玉，触碰后会浮现陌生术法的虚影，师门曾隐晦提醒过"诡异器物勿碰"，你会？',
+                options: [
+                    { text: '偷偷揣回住处，趁没人时研究虚影规律，只要不触发危险，偶尔试探也没关系', scores: { '魏无羡': 2, '温宁': 1 } },
+                    { text: '立刻将古玉封存，哪怕好奇术法模样，也绝不触碰分毫，全程遵守师门隐晦的告诫', scores: { '蓝忘机': 2, '金子轩': 1 } },
+                    { text: '表面随手交给师门长老，装作毫无兴趣，私下却悄悄留意长老们的解读，守住自己的好奇底线', scores: { '金光瑶': 2, '江澄': 1 } },
+                    { text: '随手放在路边石头上，既不碰也不带走，术法再奇特也与自己无关，省得惹麻烦', scores: { '聂怀桑': 2, '蓝曦臣': 1, '江厌离': 1 } }
+                ]
+            },
+            {
+                id: 2,
+                text: '参加仙门宴，有人借"切磋"之名故意刁难你同行的晚辈，还嘲讽晚辈"资质低劣、不配入仙门"，你会？',
+                options: [
+                    { text: '直接挡在晚辈身前，笑着说"要切磋先过我这关"，哪怕得罪对方仙门，也绝不让晚辈被欺负', scores: { '魏无羡': 2, '温宁': 1 } },
+                    { text: '不接对方的挑衅，只淡淡一句"切磋需守分寸"，随后拉走晚辈，转头悄悄教晚辈应对刁难的技巧', scores: { '蓝忘机': 2, '金子轩': 1, '江澄': 1 } },
+                    { text: '皱眉怼晚辈"没用，这点场面都撑不住"，转头却以"切磋不公"为由，暗地使绊子让挑衅者出丑', scores: { '江澄': 2 } },
+                    { text: '先安抚好晚辈的情绪，再端着酒杯上前打圆场，既点出对方切磋失度，又给足对方面子，悄悄化解矛盾', scores: { '蓝曦臣': 2, '江厌离': 2, '晓星尘': 1 } }
+                ]
+            },
+            {
+                id: 3,
+                text: '入梦后被困在一处幻境，幻境里能实现你一个心愿，但代价是忘记一个在意的人，你醒来后会反复回想？',
+                options: [
+                    { text: '幻境里无拘无束的模样，哪怕不能实现心愿，也不愿忘记在意的人，最怕他们在现实中遭遇危险', scores: { '魏无羡': 2, '温宁': 1 } },
+                    { text: '若能留在幻境守护在意的人，哪怕忘记自己也愿意，却又担心幻境是假，自己无法在现实中护他们周全', scores: { '蓝忘机': 2, '江厌离': 1 } },
+                    { text: '幻境里被所有人追捧认可的感觉，既渴望这样的认可，又害怕现实中在意的人会因此抛弃自己', scores: { '金光瑶': 2, '江澄': 1 } },
+                    { text: '宁愿幻境从未出现，只求现实中在意的人都平安顺遂，不用经历离别之苦，也不用承受任何伤害', scores: { '江厌离': 2, '晓星尘': 1, '聂怀桑': 1 } }
+                ]
+            },
+            {
+                id: 4,
+                text: '仙门百家共同商议围剿妖兽，各方意见不一：有人想硬闯，有人想固守，有人想坐收渔利，争论不休时你会？',
+                options: [
+                    { text: '提出"引妖兽出巢、逐个击破"的险招，当场演示简单思路，哪怕有人反对，也愿意带头尝试', scores: { '魏无羡': 2, '温宁': 1 } },
+                    { text: '默默退到一旁，观察妖兽栖息地的地形，梳理各方意见的利弊，制定出详细的围剿方案后，带头执行', scores: { '蓝忘机': 2, '金子轩': 1, '金光瑶': 1 } },
+                    { text: '表面附和多数人"固守待变"的想法，暗中联络少数人，悄悄调整方案，既保证自身安全，又能拿到围剿功劳', scores: { '金光瑶': 2, '聂怀桑': 1 } },
+                    { text: '挨个倾听各方诉求，劝说硬闯者谨慎、固守者灵活，寻找一个兼顾各方的折中方案，不争抢功劳，只求顺利围剿', scores: { '蓝曦臣': 2, '江厌离': 2, '晓星尘': 2 } }
+                ]
+            },
+            {
+                id: 5,
+                text: '你随手帮仙门弟子修补了破损的法器，却被人诬陷"偷偷动了手脚，想害弟子在夜猎时遇险"，你会？',
+                options: [
+                    { text: '翻个白眼转身就走，懒得跟诬陷你的人争辩，懂你的人自然知道你不会做这种事', scores: { '魏无羡': 2 } },
+                    { text: '不辩解、不生气，只是拿出修补法器的材料，当场演示修补过程，用事实证明自己的清白', scores: { '蓝忘机': 2, '金子轩': 1, '温宁': 1 } },
+                    { text: '气得怼回去"眼瞎就别乱说话"，心里却很委屈，想解释却又拉不下脸，只能暗自赌气', scores: { '江澄': 2 } },
+                    { text: '简单说一句"只是单纯修补，无其他心思"，若对方依旧不相信，便不再纠缠，后续弟子夜猎时，悄悄暗中护持', scores: { '蓝曦臣': 1, '江厌离': 1, '晓星尘': 2, '聂怀桑': 1, '金光瑶': 1 } }
+                ]
+            },
+            {
+                id: 6,
+                text: '仙门论道时，你提出的观点被前辈当众否定，还被调侃"见识浅薄、难成大器"，你的反应是？',
+                options: [
+                    { text: '哈哈一笑，当场承认"确实考虑不周"，转头就和身边人开玩笑，完全不把调侃放在心上', scores: { '魏无羡': 2, '温宁': 1 } },
+                    { text: '微微低头行礼，说"多谢前辈指点"，表面毫无波澜，私下却查阅大量典籍，完善自己的观点', scores: { '蓝忘机': 2, '金子轩': 1, '晓星尘': 1 } },
+                    { text: '脸色一沉，当场反驳"前辈未必全对"，装作毫不在意前辈的评价，实则心里暗下决心要证明自己', scores: { '江澄': 2, '金光瑶': 1 } },
+                    { text: '坦然接受前辈的否定，认真倾听前辈的观点，不辩解、不赌气，悄悄消化不足，不让身边人担心自己的情绪', scores: { '蓝曦臣': 2, '江厌离': 2, '聂怀桑': 1 } }
+                ]
+            },
+            {
+                id: 7,
+                text: '当年你落难时，有位无名修士救了你一命，如今却发现，这位修士的仇人，正是曾刻意打压你的人，两人狭路相逢，你会？',
+                options: [
+                    { text: '立刻站在无名修士身边，帮他抵挡仇人，报答当年的救命之恩；对打压你的人，只警告一句"别再惹事"，不再过多计较', scores: { '魏无羡': 2, '温宁': 1 } },
+                    { text: '默默站在一旁，若无名修士遇险便出手相助，报答恩情；对打压你的人，始终保持距离，记着过往却不主动报复', scores: { '蓝忘机': 2, '金子轩': 1, '江澄': 1 } },
+                    { text: '拼尽全力护着无名修士，彻底报答救命之恩；同时借着这个机会，狠狠反击当年打压你的人，绝不手软', scores: { '金光瑶': 2 } },
+                    { text: '上前劝说两人和解，给无名修士足够的庇护以报恩情，对打压你的人也不再记恨，只求大家各自安好、不再起冲突', scores: { '蓝曦臣': 1, '江厌离': 1, '晓星尘': 2, '聂怀桑': 1 } }
+                ]
+            },
+            {
+                id: 8,
+                text: '仙门弟子齐聚藏书阁抄书，有人偷偷打闹、有人暗中偷懒、有人争论典籍含义，场面混乱，你通常会？',
+                options: [
+                    { text: '放下手中的笔，带头开玩笑活跃气氛，偶尔帮偷懒的弟子打掩护，顺便和大家争论典籍里的有趣观点', scores: { '魏无羡': 2 } },
+                    { text: '安安静静坐在角落抄书，不参与打闹和争论，但若有人不小心打翻墨汁、弄坏典籍，会默默帮忙收拾、修补', scores: { '蓝忘机': 2, '温宁': 1 } },
+                    { text: '一边从容抄书，一边偶尔调解争论的弟子，帮大家理清典籍含义，被大家围着请教，却不刻意主导场面', scores: { '蓝曦臣': 2, '金光瑶': 1 } },
+                    { text: '找个最不起眼的位置坐下，随便翻一翻典籍，不打闹、不争论，偶尔抬头看看热闹，全程不主动出头', scores: { '聂怀桑': 2, '江厌离': 1 } }
+                ]
+            },
+            {
+                id: 9,
+                text: '家族传承的宝物被盗，仙门百家施压要求尽快找回，否则会质疑你家族的能力，你会怎么做？',
+                options: [
+                    { text: '先安顿好家族里的长辈和晚辈，确保他们的安全，再慢慢寻找宝物，哪怕被百家质疑，也不勉强自己冒险', scores: { '魏无羡': 2, '温宁': 1 } },
+                    { text: '当场立下承诺，独自承担找宝的责任，不把压力分给家族弟子，哪怕要闯凶险之地，也绝不退缩', scores: { '江澄': 2, '蓝忘机': 1 } },
+                    { text: '主动牵头寻找宝物，一边安抚仙门百家，一边暗中布局，既找回宝物保住家族颜面，也借着这个机会提升自己的声望', scores: { '金光瑶': 2, '金子轩': 1 } },
+                    { text: '召集家族弟子一起寻找，温柔安抚大家的情绪，不追求速度，也不刻意讨好百家，只求能平安找回宝物、守护家族安稳', scores: { '江厌离': 2, '蓝曦臣': 1, '晓星尘': 1, '聂怀桑': 1 } }
+                ]
+            },
+            {
+                id: 10,
+                text: '你偶然得到一本上古秘籍，修炼后能快速提升修为，但秘籍最后一页写着"修炼需以无辜者的灵力为引"，你会？',
+                options: [
+                    { text: '放弃修炼这本秘籍，哪怕修为提升缓慢，也绝不伤害无辜，但若能找到替代灵力的方法，也愿意尝试秘籍中的功法', scores: { '魏无羡': 1, '江澄': 1, '温宁': 2 } },
+                    { text: '当场烧毁秘籍，坚决不碰这种损人利己的功法，始终坚守自己的修行底线，绝不因修为诱惑而妥协', scores: { '蓝忘机': 2, '金子轩': 1 } },
+                    { text: '暂时收起秘籍，先尝试修炼前半部分，后续再寻找"无辜者灵力"的替代方案，不愿错过提升修为的机会', scores: { '金光瑶': 2 } },
+                    { text: '将秘籍封存起来，绝不修炼，也不轻易示人，哪怕自己修为难以提升，也绝不伤害无辜、违背修行初心', scores: { '晓星尘': 2, '蓝曦臣': 1, '江厌离': 1 } }
+                ]
+            }
+        ];
+
+        // 初始化变量
+        let currentQuestion = 0;
+        let userAnswers = [];
+        let scores = {};
+
+        // 初始化分数对象
+        function initScores() {
+            Object.keys(characters).forEach(character => {
+                scores[character] = 0;
+            });
+        }
+
+        // 显示题目
+        function showQuestion(index) {
+            const quizContainer = document.getElementById('quizContainer');
+            const question = questions[index];
+            
+            quizContainer.innerHTML = `
+                <div class="bg-white/80 rounded-lg p-6 shadow-lg border border-secondary">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-primary">第 ${question.id}/10 题</h3>
+                        <div class="w-24 h-1 bg-secondary rounded-full overflow-hidden">
+                            <div class="h-full bg-accent" style="width: ${(index + 1) * 10}%"></div>
+                        </div>
+                    </div>
+                    <p class="text-dark/90 mb-6 text-lg">${question.text}</p>
+                    <div class="space-y-4">
+                        ${question.options.map((option, i) => `
+                            <label class="block">
+                                <input type="radio" name="question${question.id}" value="${i}" class="hidden peer">
+                                <div class="w-full p-4 border border-secondary rounded-lg cursor-pointer transition-all duration-300 peer-checked:bg-primary/10 peer-checked:border-primary peer-checked:shadow-md hover:bg-primary/5">
+                                    <span class="text-lg font-medium">${String.fromCharCode(65 + i)}. ${option.text}</span>
+                                </div>
+                            </label>
+                        `).join('')}
+                    </div>
+                    <div class="mt-8 flex justify-between">
+                        ${index > 0 ? `
+                            <button class="prev-btn bg-secondary hover:bg-secondary/90 text-white font-bold py-2 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 ink-splash">
+                                <i class="fa fa-arrow-left mr-2"></i>上一题
+                            </button>
+                        ` : '<div></div>'}
+                        ${index < questions.length - 1 ? `
+                            <button class="next-btn bg-primary hover:bg-primary/90 text-white font-bold py-2 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 ink-splash">
+                                下一题<i class="fa fa-arrow-right ml-2"></i>
+                            </button>
+                        ` : `
+                            <button class="submit-btn bg-accent hover:bg-accent/90 text-white font-bold py-2 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 ink-splash">
+                                提交答案<i class="fa fa-check ml-2"></i>
+                            </button>
+                        `}
+                    </div>
+                </div>
+            `;
+
+            // 添加事件监听器
+            if (index > 0) {
+                quizContainer.querySelector('.prev-btn').addEventListener('click', () => {
+                    saveAnswer(currentQuestion);
+                    currentQuestion--;
+                    showQuestion(currentQuestion);
+                });
+            }
+
+            if (index < questions.length - 1) {
+                quizContainer.querySelector('.next-btn').addEventListener('click', () => {
+                    if (document.querySelector(`input[name="question${question.id}"]:checked`)) {
+                        saveAnswer(currentQuestion);
+                        currentQuestion++;
+                        showQuestion(currentQuestion);
+                    } else {
+                        alert('请选择一个选项');
+                    }
+                });
+            } else {
+                quizContainer.querySelector('.submit-btn').addEventListener('click', () => {
+                    if (document.querySelector(`input[name="question${question.id}"]:checked`)) {
+                        saveAnswer(currentQuestion);
+                        calculateResult();
+                    } else {
+                        alert('请选择一个选项');
+                    }
+                });
+            }
+
+            // 恢复之前的选择
+            if (userAnswers[index] !== undefined) {
+                document.querySelector(`input[name="question${question.id}"][value="${userAnswers[index]}"]`).checked = true;
+            }
+        }
+
+        // 保存答案
+        function saveAnswer(questionIndex) {
+            const selectedOption = document.querySelector(`input[name="question${questions[questionIndex].id}"]:checked`);
+            if (selectedOption) {
+                userAnswers[questionIndex] = parseInt(selectedOption.value);
+            }
+        }
+
+        // 计算结果
+        function calculateResult() {
+            initScores();
+            
+            // 计算每个角色的得分
+            userAnswers.forEach((answerIndex, questionIndex) => {
+                if (answerIndex !== undefined) {
+                    const question = questions[questionIndex];
+                    const selectedOption = question.options[answerIndex];
+                    
+                    Object.entries(selectedOption.scores).forEach(([character, score]) => {
+                        scores[character] += score;
+                    });
+                }
+            });
+            
+            // 找出得分最高的角色
+            let maxScore = 0;
+            let matchedCharacters = [];
+            
+            Object.entries(scores).forEach(([character, score]) => {
+                if (score > maxScore) {
+                    maxScore = score;
+                    matchedCharacters = [character];
+                } else if (score === maxScore) {
+                    matchedCharacters.push(character);
+                }
+            });
+            
+            // 处理并列情况
+            let finalCharacter;
+            if (matchedCharacters.length > 1) {
+                // 根据规则处理并列情况
+                if (matchedCharacters.includes('魏无羡') && matchedCharacters.includes('蓝忘机')) {
+                    // 统计选A和选B的数量
+                    let aCount = 0, bCount = 0;
+                    userAnswers.forEach((answerIndex, questionIndex) => {
+                        if (answerIndex === 0) aCount++;
+                        else if (answerIndex === 1) bCount++;
+                    });
+                    finalCharacter = aCount > bCount ? '魏无羡' : '蓝忘机';
+                } else if (matchedCharacters.includes('江澄') && matchedCharacters.includes('金光瑶')) {
+                    // 统计选C的数量和选B/C的数量
+                    let cCount = 0, bcCount = 0;
+                    userAnswers.forEach((answerIndex, questionIndex) => {
+                        if (answerIndex === 2) {
+                            cCount++;
+                            bcCount++;
+                        } else if (answerIndex === 1) {
+                            bcCount++;
+                        }
+                    });
+                    finalCharacter = cCount > bcCount/2 ? '江澄' : '金光瑶';
+                } else if (matchedCharacters.some(c => ['蓝曦臣', '江厌离', '晓星尘'].includes(c))) {
+                    // 统计选D的数量
+                    let dCount = 0;
+                    userAnswers.forEach((answerIndex, questionIndex) => {
+                        if (answerIndex === 3) dCount++;
+                    });
+                    // 找出matchedCharacters中在这三个角色里的
+                    const candidates = matchedCharacters.filter(c => ['蓝曦臣', '江厌离', '晓星尘'].includes(c));
+                    if (candidates.length === 1) {
+                        finalCharacter = candidates[0];
+                    } else {
+                        // 都选D多的话，根据描述判断
+                        finalCharacter = '蓝曦臣'; // 默认选蓝曦臣
+                    }
+                } else if (matchedCharacters.includes('聂怀桑')) {
+                    // 统计选D的数量
+                    let dCount = 0;
+                    userAnswers.forEach((answerIndex, questionIndex) => {
+                        if (answerIndex === 3) dCount++;
+                    });
+                    // 如果聂怀桑是并列中选D最多的，选他
+                    finalCharacter = '聂怀桑';
+                } else if (matchedCharacters.includes('金子轩') && matchedCharacters.includes('温宁')) {
+                    // 统计前期选A、后期选B的数量和选A/D兼顾的数量
+                    let abCount = 0, adCount = 0;
+                    userAnswers.forEach((answerIndex, questionIndex) => {
+                        if (questionIndex < 5 && answerIndex === 0) {
+                            abCount++;
+                            adCount++;
+                        } else if (questionIndex >= 5 && answerIndex === 1) {
+                            abCount++;
+                        } else if (answerIndex === 3) {
+                            adCount++;
+                        }
+                    });
+                    finalCharacter = abCount > adCount ? '金子轩' : '温宁';
+                } else {
+                    // 其他情况，默认选第一个
+                    finalCharacter = matchedCharacters[0];
+                }
+            } else {
+                finalCharacter = matchedCharacters[0];
+            }
+            
+            // 显示结果
+            showResult(finalCharacter);
+        }
+
+        // 显示结果（已移除图片展示部分）
+        function showResult(character) {
+            const quizContainer = document.getElementById('quizContainer');
+            const resultContainer = document.getElementById('resultContainer');
+            const resultContent = document.getElementById('resultContent');
+            const characterInfo = document.getElementById('characterInfo');
+            const characterDetails = document.getElementById('characterDetails');
+            
+            quizContainer.classList.add('hidden');
+            resultContainer.classList.remove('hidden');
+            characterInfo.classList.remove('hidden');
+            
+            const char = characters[character];
+            
+            resultContent.innerHTML = `
+                <div class="flex flex-col items-center">
+                    <h3 class="text-3xl font-bold mt-6" style="color: ${char.color}">${char.name}</h3>
+                    <p class="text-xl text-dark/70 mb-4">${char.title}</p>
+                    <div class="w-24 h-1 bg-${char.color.replace('#', '')} mx-auto mb-6"></div>
+                    <p class="text-lg text-dark/90 max-w-2xl mx-auto">${char.description}</p>
+                    <div class="mt-6 flex flex-wrap justify-center gap-2">
+                        ${char.traits.map(trait => `
+                            <span class="px-4 py-2 rounded-full text-sm font-medium" style="background-color: ${char.color}20; color: ${char.color}">${trait}</span>
+                        `).join('')}
+                    </div>
+                    <div class="mt-8 text-center">
+                        <p class="text-lg font-medium text-dark/80">你的性格与${char.name}最为契合！</p>
+                    </div>
+                </div>
+            `;
+            
+            // 显示详细的角色分析
+            characterDetails.innerHTML = `
+                <div class="prose max-w-none">
+                    <h3 class="text-xl font-bold mb-4" style="color: ${char.color}">角色深度解析</h3>
+                    <p>${char.name}是《魔道祖师》中极具特色的角色，${char.description}</p>
+                    <p>性格特质方面，${char.name}${char.traits.join('、')}，这些特点使他在故事中独树一帜。</p>
+                    <p>你与${char.name}的性格匹配，说明你也有着类似的特质。在面对问题时，你可能会像${char.name}一样${char.traits[0]}、${char.traits[1]}，这使你在人际关系中往往能够${char.traits[2]}。</p>
+                    <div class="mt-6">
+                        <h4 class="text-lg font-bold mb-2">匹配指数</h4>
+                        <div class="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full" style="width: 95%; background-color: ${char.color}"></div>
+                        </div>
+                        <div class="flex justify-between mt-1 text-sm text-dark/70">
+                            <span>0%</span>
+                            <span>95%</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 事件监听器
+        document.addEventListener('DOMContentLoaded', () => {
+            const startBtn = document.getElementById('startBtn');
+            const restartBtn = document.getElementById('restartBtn');
+            const quizContainer = document.getElementById('quizContainer');
+            const resultContainer = document.getElementById('resultContainer');
+            const characterInfo = document.getElementById('characterInfo');
+            
+            // 开始测评
+            startBtn.addEventListener('click', () => {
+                startBtn.parentElement.parentElement.classList.add('hidden');
+                quizContainer.classList.remove('hidden');
+                showQuestion(currentQuestion);
+            });
+            
+            // 重新测评
+            restartBtn.addEventListener('click', () => {
+                currentQuestion = 0;
+                userAnswers = [];
+                initScores();
+                resultContainer.classList.add('hidden');
+                characterInfo.classList.add('hidden');
+                quizContainer.classList.remove('hidden');
+                showQuestion(currentQuestion);
+            });
+        });
+    </script>
+</body>
+</html>
